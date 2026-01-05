@@ -1,6 +1,8 @@
 # ProPresUtils
 Various Ruby scripts to assist with ProPresenter documents.
 
+Depends on [RubyCommon](https://github.com/AustinLMayes/RubyCommon)
+
 ## Scripts
 - `arrangement_extractor.rb` - Extract song arrangements from documents and save them to text files
 - `arrangement_importer.rb` - Import song arrangements from text files back into documents - useful for re-importing documents from text without losing arrangement data
