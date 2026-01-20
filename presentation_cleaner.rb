@@ -124,7 +124,6 @@ def add_visual(presentation)
     visual_group.group.name = "Visual"
     visual_group.group.color = Rv::Data::Color.new(red: 0.999996, green: 1, blue: 1, alpha: 1)
     visual_group.group.application_group_identifier = Rv::Data::UUID.new(string: "0504D58C-15F3-47D9-8081-1438C0CF60C4")
-    visual_group.cue_identifiers << cue_id
 
     presentation.cue_groups.unshift(visual_group)
   end
@@ -217,7 +216,7 @@ end
 Dir.chdir PRES_DIR do
     Dir.glob("**/*").each do |path|
       next unless path.end_with? ".pro"
-      info "Cleaning presentation file #{path}"
+      debug "Cleaning presentation file #{path}"
       pres = Rv::Data::Presentation.decode File.read(path)
       original = Rv::Data::Presentation.decode File.read(path) # Deep copy
       fix_name(path, pres)
@@ -227,9 +226,9 @@ Dir.chdir PRES_DIR do
       fix_transitions(pres)
 
       if pres.== original
-        info " - No changes needed"
+        debug " - No changes needed"
       else
-        info " - Changes detected, saving file"
+        info " - Changes detected, saving file #{path}"
         File.write path, Rv::Data::Presentation.encode(pres)
       end
     end
