@@ -38,13 +38,11 @@ def extract(presentation)
           base_slide.elements.each do |element|
             plain = RubyRTF::Parser.new(unknown_control_warning_enabled: false).parse(element.element.text.rtf_data).sections.map{ | s | s[:text].strip }.filter{ | t | !t.empty? }
             next if plain.empty?
-            # is<U+0097>a膗mighty God -> He is a mighty
             plain.map! do |line|
-              line.gsub!("\u0097", " ")
-              line.gsub!("\u8517", " ")
-              line.gsub!("膗", " ")
               # curly apostrophes to straight
               line.gsub!("\u2019", "'")
+              # remove non ASCII characters (keep accented letters)
+              line.encode!("UTF-8", invalid: :replace, undef: :replace, replace: '')
               line
             end
             content = plain
@@ -64,6 +62,7 @@ def extract(presentation)
     next if group[:content].empty?
     lines << "#{group[:name]}"
     group[:content].each do |content|
+      next if content.nil? || content.empty?
       lines << content.join("\n")
       lines << ""
     end
@@ -74,14 +73,26 @@ end
 Dir.chdir PRES_DIR do
     Dir.glob("**/*").each do |path|
       next unless path.end_with? ".pro"
-      info "Getting text from #{path}"
+      debug "Getting text from #{path}"
       pres = Rv::Data::Presentation.decode File.read(path)
       lines = extract(pres)
       out_path = File.join(OUT_DIR, File.basename(path, ".pro") + ".txt")
+      res = []
+      lines.each_with_index do |line, index|
+        res << line
+        res << "\n" unless index >= lines.length - 2
+      end
+      if File.exist?(out_path)
+        existing = File.read(out_path)
+        if existing == res.join
+          debug "No changes for #{out_path}, skipping"
+          next
+        end
+      end
+      info "Writing text to #{out_path}"
       File.open(out_path, 'w') do |file|
-        lines.each_with_index do |line, index|
+        res.each do |line|
           file.write line
-          file.write "\n" unless index == lines.length - 1
         end
       end
     end

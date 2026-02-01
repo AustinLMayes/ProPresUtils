@@ -43,6 +43,19 @@ Dir.chdir PRES_DIR do
       lines = extract(pres)
       next if lines.empty?
       out_path = File.join(OUT_DIR, File.basename(path, ".pro") + ".txt")
+      res = []
+      lines.each_with_index do |line, index|
+        res << line
+        res << "\n" unless index == lines.length - 1
+      end
+      if File.exist?(out_path)
+        existing = File.read(out_path)
+        if existing == res.join
+          debug "No changes for #{out_path}, skipping"
+          next
+        end
+      end
+      info "Writing text to #{out_path}"
       File.open(out_path, 'w') do |file|
         lines.each_with_index do |line, index|
           file.write line
